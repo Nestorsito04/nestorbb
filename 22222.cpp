@@ -20,6 +20,7 @@ void setConsoleOutputColor(int desiredColorCode) {
 // Función auxiliar para convertir una cadena completa a minúsculas (útil para búsquedas sin distinción de mayúsculas/minúsculas)
 string convertToLowerCase(const string& originalText) {
     string lowercasedText = originalText; // Creamos una copia modificable de la cadena original
+    
     // Aplicamos la función std::tolower a cada carácter de la cadena
     transform(lowercasedText.begin(), lowercasedText.end(), lowercasedText.begin(),
                    [](unsigned char c){ return tolower(c); });
@@ -32,6 +33,7 @@ void processLineAndHighlight(string& lineContent, const string& userSearchTerm, 
     string lowerSearchTerm = convertToLowerCase(userSearchTerm); // El término de búsqueda en minúsculas
     size_t currentMatchPos = lowerLine.find(lowerSearchTerm);    // Buscamos la primera aparición del término
     size_t lineSpecificMatches = 0;                              // Contador para esta línea en particular
+    
 // Iteramos mientras se encuentren coincidencias en la línea
     while (currentMatchPos != string::npos) { // string::npos indica que no se encontró el término
         // Imprimimos la porción de la línea que precede a la coincidencia
@@ -41,3 +43,33 @@ void processLineAndHighlight(string& lineContent, const string& userSearchTerm, 
         setConsoleOutputColor(MATCH_HIGHLIGHT_COLOR); // Establecemos el color rojo
         cout << lineContent.substr(currentMatchPos, userSearchTerm.length()); // Imprimimos la parte que coincide
         setConsoleOutputColor(DEFAULT_CONSOLE_COLOR); // Reestablecemos el color por defecto
+        
+ // Actualizamos la línea (y su versión en minúsculas) para continuar la búsqueda después de la coincidencia actual
+        lineContent = lineContent.substr(currentMatchPos + userSearchTerm.length());
+        lowerLine = lowerLine.substr(currentMatchPos + userSearchTerm.length());
+        currentMatchPos = lowerLine.find(lowerSearchTerm); // Buscamos la siguiente ocurrencia
+        lineSpecificMatches++; // Incrementamos el contador de coincidencias para esta línea
+    }
+    cout << lineContent << endl; // Imprimimos el resto de la línea (si queda algo sin resaltar)
+    totalFoundOccurrences += lineSpecificMatches; // Agregamos las coincidencias de esta línea al total global
+}
+
+int main() {
+    // Configuramos la consola para asegurar la correcta visualización y entrada de caracteres UTF-8
+    SetConsoleOutputCP(65001); // Para la salida (lo que el programa imprime)
+    SetConsoleCP(65001);      // Para la entrada (lo que el usuario teclea)
+
+    string targetFileName = "archivoness.txt"; // Nombre del archivo de texto que vamos a leer
+    string searchTermInput;              // Variable para guardar lo que el usuario quiere buscar
+    char repeatSearchOption;             // Guarda la opción del usuario para buscar de nuevo
+
+    // Este bucle principal permite al usuario realizar múltiples búsquedas consecutivas
+    do {
+        // Abrimos el archivo en cada iteración del bucle, ya que no estamos cargando todo en memoria con un vector
+        ifstream inputFileStream(targetFileName);
+
+        // Verificamos si el archivo se abrió correctamente
+        if (!inputFileStream.is_open()) {
+            cerr << "Error: No se pudo abrir el archivo '" << targetFileName << "'." << endl;
+            return 1; // Salimos del programa con un código de error
+        }
