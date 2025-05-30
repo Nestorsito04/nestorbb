@@ -73,3 +73,47 @@ int main() {
             cerr << "Error: No se pudo abrir el archivo '" << targetFileName << "'." << endl;
             return 1; // Salimos del programa con un código de error
         }
+
+ // Solicitamos al usuario que ingrese el texto a buscar
+        cout << "\nPor favor, ingresa la palabra o caracter a buscar: ";
+        getline(cin, searchTermInput); // Leemos la línea completa que el usuario introduce
+
+        // Validamos que el texto de búsqueda no esté vacío
+        if (searchTermInput.empty()) {
+            cout << "¡Advertencia! No se permiten búsquedas vacías. Por favor, intenta de nuevo." << endl;
+            inputFileStream.close(); // Cerramos el archivo antes de la próxima iteración del bucle
+            continue; // Volvemos al inicio del bucle do-while
+        }
+
+        int overallMatchCounter = 0; // Inicializamos el contador total de coincidencias para esta búsqueda
+        string currentTextLine;      // Variable para almacenar cada línea leída del archivo
+
+        // Leemos el archivo línea por línea hasta que no haya más contenido
+        while (getline(inputFileStream, currentTextLine)) {
+            string lowerCurrentTextLine = convertToLowerCase(currentTextLine); // Convertimos la línea actual a minúsculas
+            string lowerSearchTermInput = convertToLowerCase(searchTermInput); // Convertimos el término de búsqueda a minúsculas
+
+            // Verificamos si el término de búsqueda está presente en la línea (sin distinguir mayúsculas/minúsculas)
+            if (lowerCurrentTextLine.find(lowerSearchTermInput) != string::npos) {
+                // Si encontramos una coincidencia, llamamos a la función para procesarla
+                processLineAndHighlight(currentTextLine, searchTermInput, overallMatchCounter);
+            } else {
+                // Si no hay coincidencias en la línea, simplemente la imprimimos tal cual
+                cout << currentTextLine << endl;
+            }
+        }
+        inputFileStream.close(); // Cerramos el archivo después de haberlo leído completamente
+
+        // Mostramos el total de coincidencias encontradas para la búsqueda actual
+        cout << "\nTotal de coincidencias encontradas para \"" << searchTermInput << "\": " << overallMatchCounter << endl;
+
+        // Preguntamos al usuario si desea realizar otra búsqueda
+        cout << "¿Deseas buscar otra palabra o caracter? (S/N): ";
+        cin >> repeatSearchOption; // Leemos un solo carácter
+        cin.ignore(); // Limpiamos el buffer de entrada para evitar problemas con getline en la siguiente iteración
+
+    } while (convertToLowerCase(string(1, repeatSearchOption)) == "s"); // El bucle continúa si el usuario ingresa 's' o 'S'
+
+    cout << "Búsqueda finalizada. hasta luego" << endl;
+    return 0; 
+}
